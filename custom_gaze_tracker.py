@@ -8,7 +8,6 @@ from flask import Flask, request
 
 NOT_LOOKING_THRESHOLD = 1.0 # Time that user not looking at the screen to trigger shock
 
-
 class CustomGazeTracker:
     def __init__(self):
         self.gaze = GazeTracking()
@@ -109,7 +108,5 @@ class CustomGazeTracker:
 
     def start_listening(self, host, port):
         print(f"Starting API on {host}:{port}")
-        thread = Thread(target=self.app.run, kwargs={"host": host, "port": port, "use_reloader": False})
-        thread.daemon = True
-        thread.start()
+        self.run()
 

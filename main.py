@@ -10,15 +10,16 @@ from custom_gaze_tracker import CustomGazeTracker
 from dotenv import load_dotenv
 load_dotenv()
 
-HOST = os.getenv("MIDDLEWARE_HOST", "127.0.0.1")
-PORT = int(os.getenv("MIDDLEWARE_PORT", 1337))
-
+MIDDLEWARE_HOST = os.getenv("MIDDLEWARE_HOST", "127.0.0.1")
+MIDDLEWARE_PORT = int(os.getenv("MIDDLEWARE_PORT", 1337))
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", 1338))
 
 class ArduinoCommunication(threading.Thread):
     def __init__(self):
         super().__init__()
-        self.host = HOST 
-        self.port = PORT
+        self.host = MIDDLEWARE_HOST 
+        self.port = MIDDLEWARE_PORT
         self.running = True
 
 
@@ -53,9 +54,10 @@ def main():
 
         # Run GazeTracker in the main thread
         gaze_tracker = CustomGazeTracker()
-        gaze_tracker.start_listening(HOST, PORT)
+        gaze_tracker.start_listening(API_HOST, API_PORT)
         # gaze_tracker.run()
-
+       
+    except KeyboardInterrupt:
         # Cleanup Arduino thread
         arduino_thread.stop()
         arduino_thread.join()
