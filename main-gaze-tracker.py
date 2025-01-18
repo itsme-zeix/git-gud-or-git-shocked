@@ -23,8 +23,8 @@ class ArduinoCommunication(threading.Thread):
 
                 while self.running:
                     # Check if there's a command from the GazeTracker
-                    if not command_queue.empty():
-                        command = command_queue.get()
+                    if len(command_queue) > 0:
+                        command = command_queue.popleft()
                         print(f"Sending command to Arduino: {command}")
                         client.sendall(command.encode())
 

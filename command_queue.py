@@ -1,3 +1,3 @@
-import queue
+from collections import deque
 
-command_queue = queue.Queue()
+command_queue = deque()

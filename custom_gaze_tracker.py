@@ -3,7 +3,8 @@ import time
 from GazeTracking.gaze_tracking import GazeTracking
 from command_queue import command_queue
 
-COOLDOWN = 0.5
+COOLDOWN = 0.5 # Cooldown for sending signals
+NOT_LOOKING_THRESHOLD = 3.0 # Time that user not looking at the screen to trigger shock
 
 class CustomGazeTracker:
     def __init__(self):
@@ -21,6 +22,8 @@ class CustomGazeTracker:
         self.last_sent_time = 0  # Track the last time a signal was sent
         self.cooldown = COOLDOWN
 
+        self.not_looking_start_time = None
+
     def process_frame(self):
         # Read a frame from the webcam
         ret, frame = self.webcam.read()
@@ -31,16 +34,17 @@ class CustomGazeTracker:
         # Analyze the frame with GazeTracking
         self.gaze.refresh(frame)
 
-        # Annotate the frame for display
-        annotated_frame = self.gaze.annotated_frame()
-
         # Determine gaze direction
         if self._check_if_looking():
             text = "Looking"
+            self.not_looking_start_time = None
             self.send_signal('0') # stop signal
         else:
             text = "Not Looking"
-            self.send_signal('1') # shock signal
+            self._track_not_looking()
+
+        # Annotate the frame for display
+        annotated_frame = self.gaze.annotated_frame()
 
         # Add text annotation to the frame
         cv2.putText(
@@ -55,6 +59,17 @@ class CustomGazeTracker:
 
         return annotated_frame
     
+    def _track_not_looking(self):
+        current_time = time.time()
+
+        if self.not_looking_start_time is None:
+            self.not_looking_start_time = current_time
+
+        elapsed_time = current_time - self.not_looking_start_time
+
+        if elapsed_time >= NOT_LOOKING_THRESHOLD:
+            self.send_signal('1')
+
     def _check_if_looking(self):
         return self.gaze.is_right() or self.gaze.is_left() or self.gaze.is_center()
     
@@ -62,7 +77,7 @@ class CustomGazeTracker:
         current_time = time.time()
         if current_time - self.last_sent_time >= self.cooldown:  # Check against cooldown
             print(f"CustomGazeTracker added '{signal}' to the command queue.")
-            command_queue.put(signal)
+            command_queue.append(signal)
             self.last_sent_time = current_time
 
     def run(self):
