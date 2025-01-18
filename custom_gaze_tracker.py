@@ -15,17 +15,6 @@ class CustomGazeTracker:
         self.app.add_url_rule("/start", 'start', self.run, methods = ["GET"])
         self.app.add_url_rule("/stop", 'stop', self.stop, methods = ["GET"])
 
-        # VideoCapture(0) for Windows
-        # VideoCapture(1) for MacOS
-        self.webcam = cv2.VideoCapture(1)
-        if not self.webcam.isOpened():
-            print("Unable to access the webcam.")
-        else:
-            print("Webcam accessed successfully.")
-
-        # Reduce resolution to optimize speed
-        self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
         self.running = True
         self.last_sent_signal = None
@@ -89,6 +78,19 @@ class CustomGazeTracker:
         self.last_sent_signal = signal
 
     def run(self):
+
+        # VideoCapture(0) for Windows
+        # VideoCapture(1) for MacOS
+        self.webcam = cv2.VideoCapture(1)
+        if not self.webcam.isOpened():
+            print("Unable to access the webcam.")
+        else:
+            print("Webcam accessed successfully.")
+
+        # Reduce resolution to optimize speed
+        self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
         while self.running:
             frame = self.process_frame()
 
@@ -107,6 +109,8 @@ class CustomGazeTracker:
         print("Gaze Tracker stopped")
 
     def start_listening(self, host, port):
-        print(f"Starting API on {host}:{port}")
-        self.run()
+        print(f"API listening on {host}:{port}. Awaiting GET /start or GET /stop.")
+        thread = Thread(target=self.app.run, kwargs={"host": host, "port": port, "use_reloader": False})
+        thread.daemon = True
+        thread.start()
 

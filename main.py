@@ -1,7 +1,6 @@
 import socket
 import threading
-import sys
-import select
+import time
 import os
 
 from command_queue import command_queue
@@ -51,11 +50,14 @@ def main():
         # Start Arduino communication in a separate thread
         arduino_thread = ArduinoCommunication()
         arduino_thread.start()
+        keep_api_running = True
 
         # Run GazeTracker in the main thread
         gaze_tracker = CustomGazeTracker()
         gaze_tracker.start_listening(API_HOST, API_PORT)
         # gaze_tracker.run()
+        while keep_api_running:
+          time.sleep(1)
        
     except KeyboardInterrupt:
         # Cleanup Arduino thread
