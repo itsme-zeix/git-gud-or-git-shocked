@@ -8,7 +8,10 @@ COOLDOWN = 0.5
 class CustomGazeTracker:
     def __init__(self):
         self.gaze = GazeTracking()
-        self.webcam = cv2.VideoCapture(0)
+
+        # VideoCapture(0) for Windows
+        # VideoCapture(1) for MacOS
+        self.webcam = cv2.VideoCapture(1)
         if not self.webcam.isOpened():
             print("Unable to access the webcam.")
         else:

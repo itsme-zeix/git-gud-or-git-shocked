@@ -6,15 +6,14 @@ import time
 
 class RegionCapture:
     def __init__(self):
-        self.HEALTH_BAR_HORIZONTAL_COORDS_PERCENTAGE = 0.3 #percentage of width at which the health will appear
+        # Percentage of width at which the health will appear
+        self.HEALTH_BAR_HORIZONTAL_COORDS_PERCENTAGE = 0.3 
         self.HEALTH_BAR_VERTICAL_COORDS_PERCENTAGE = 0.85
         self.HEALTH_BAR_WIDTH_PERCENTAGE = 0.1
         self.image_count = 0
 
     def detect_screen_changes(self):
-        """
-        Captures frames continuously
-        """
+        # Captures frames continuously
         last_health_value = None # format of health
         while True:
             with mss.mss() as sct:
@@ -26,33 +25,34 @@ class RegionCapture:
                 try:
                     # Capture the current frame
                     current_frame = np.array(sct.grab(region))
+
                     # Convert BGRA to grayscale for comparison
                     gray_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGRA2GRAY)
                     current_health_value = ocr_reader.read_image(gray_frame)
-                    print(f"captured current health value: {current_health_value}")
+                    print(f"Captured current health value: {current_health_value}")
+                    
+                    # Filter for numbers
                     if current_health_value is not None:
                         is_current_health_value_numeric = str.isnumeric(current_health_value)
+
                         self._save_frame(gray_frame, current_health_value)
                         # Display the current frame (optional)
                         # cv2.imshow("Current Frame", gray_frame)
-                        if is_current_health_value_numeric and last_health_value is not None:
+
+                        if is_current_health_value_numeric:
                             if (self._has_health_drop(current_health_value, last_health_value)):
                                 self._send_electrical_shock_signal()
                             time.sleep(2)
                         elif is_current_health_value_numeric:
-                            print(f'last health value:{last_health_value}')
-                            print(f"current: {current_health_value}")
                             last_health_value = current_health_value
-                    # Exit on pressing ESC
                     if cv2.waitKey(1) & 0xFF == ord("\\"):
                         break
 
                 except KeyboardInterrupt:
                     print("\nMonitoring stopped by user.")
                     break
-
                 finally:
-                    cv2.destroyAllWindows()\
+                    cv2.destroyAllWindows()
 
     def _has_health_drop(self, current_value, last_value):
         return last_value - current_value > 0
