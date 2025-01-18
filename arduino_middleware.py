@@ -3,6 +3,10 @@ import serial
 import serial.tools.list_ports
 import threading
 import time
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
 
 def find_arduino_port():
     """Find the Arduino device by scanning available serial ports."""
@@ -16,7 +20,9 @@ def find_arduino_port():
     raise Exception("Arduino not found!")
 
 class ArduinoMiddleware:
-    def __init__(self, host='127.0.0.1', port=1337, baudrate=9600):
+    def __init__(self, host=os.getenv("MIDDLEWARE_HOST", "127.0.0.1")
+, port=int(os.getenv("MIDDLEWARE_PORT", 1337)),
+ baudrate=9600):
         self.arduino_port = find_arduino_port()
         self.arduino = serial.Serial(port=self.arduino_port, baudrate=baudrate, timeout=1)
         self.host = host
