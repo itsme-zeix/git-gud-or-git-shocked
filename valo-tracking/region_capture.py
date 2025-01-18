@@ -3,18 +3,21 @@ import mss
 import numpy as np
 import ocr_reader
 import time
+from key_listening import KeyListener 
 
 class RegionCapture:
-    def __init__(self):
+    def __init__(self, keyboard_listener):
         # Percentage of width at which the health will appear
         self.HEALTH_BAR_HORIZONTAL_COORDS_PERCENTAGE = 0.3 
-        self.HEALTH_BAR_VERTICAL_COORDS_PERCENTAGE = 0.85
+        self.HEALTH_BAR_VERTICAL_COORDS_PERCENTAGE = 0.85 
         self.HEALTH_BAR_WIDTH_PERCENTAGE = 0.1
         self.image_count = 0
+        self.keyboard_listener = keyboard_listener
 
     def detect_screen_changes(self):
         # Captures frames continuously
         last_health_value = None # format of health
+        self.keyboard_listener.start_listener()
         while True:
             with mss.mss() as sct:
                 # Define the screen region (full screen if None)
@@ -23,23 +26,18 @@ class RegionCapture:
                 # Initialize variables
                 print("Monitoring screen for changes... Press 'Ctrl+C' to stop.")
                 try:
-                    # Capture the current frame
                     current_frame = np.array(sct.grab(region))
-
-                    # Convert BGRA to grayscale for comparison
                     gray_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGRA2GRAY)
                     current_health_value = ocr_reader.read_image(gray_frame)
-                    print(f"Captured current health value: {current_health_value}")
                     
                     # Filter for numbers
                     if current_health_value is not None:
                         is_current_health_value_numeric = str.isnumeric(current_health_value)
-
                         self._save_frame(gray_frame, current_health_value)
-                        # Display the current frame (optional)
-                        # cv2.imshow("Current Frame", gray_frame)
-
-                        if is_current_health_value_numeric:
+                        current_health_value = int(current_health_value) # convert the string into a number
+                        print(f"current {current_health_value}")
+                        print(f"last {last_health_value}")
+                        if is_current_health_value_numeric and last_health_value is not None:
                             if (self._has_health_drop(current_health_value, last_health_value)):
                                 self._send_electrical_shock_signal()
                             time.sleep(2)
@@ -76,7 +74,8 @@ class RegionCapture:
 if __name__ == "__main__":
     # Define the region (optional)
     # region = {"top": 100, "left": 100, "width": 800, "height": 600}  # Example region
-    region_capture_instance = RegionCapture()
+    keyboard_listener = KeyListener("\\")
+    region_capture_instance = RegionCapture(keyboard_listener)
     region = None  # Set to None for full screen
 
     # Call the detection function
