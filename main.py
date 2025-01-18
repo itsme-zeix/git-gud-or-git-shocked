@@ -68,7 +68,7 @@ def main():
 
         # Run GazeTracker in the main thread
         gaze_tracker = CustomGazeTracker()
-        gaze_tracker.start_listening(HOST_MIDDLEWARE, API_PORT_NUMBER)
+        gaze_tracker.start_listening("0.0.0.0", API_PORT_NUMBER)
         # gaze_tracker.run()
 
         # Cleanup Arduino thread
