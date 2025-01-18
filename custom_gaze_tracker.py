@@ -6,8 +6,7 @@ from command_queue import command_queue
 from flask import Flask, request
 # from waitress import serve
 
-COOLDOWN = 0.5 # Cooldown for sending signals
-NOT_LOOKING_THRESHOLD = 2.0 # Time that user not looking at the screen to trigger shock
+NOT_LOOKING_THRESHOLD = 1.0 # Time that user not looking at the screen to trigger shock
 
 
 class CustomGazeTracker:
@@ -24,12 +23,15 @@ class CustomGazeTracker:
             print("Unable to access the webcam.")
         else:
             print("Webcam accessed successfully.")
+
+        # Reduce resolution to optimize speed
+        self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
         self.running = True
-
-        self.last_sent_time = 0  # Track the last time a signal was sent
-        self.cooldown = COOLDOWN
-
+        self.last_sent_signal = None
         self.not_looking_start_time = None
+
 
     def process_frame(self):
         # Read a frame from the webcam
@@ -81,21 +83,19 @@ class CustomGazeTracker:
         return self.gaze.is_right() or self.gaze.is_left() or self.gaze.is_center()
     
     def send_signal(self, signal):
-        current_time = time.time()
-        if current_time - self.last_sent_time >= self.cooldown:  # Check against cooldown
-            print(f"CustomGazeTracker added '{signal}' to the command queue.")
-            command_queue.append(signal)
-            self.last_sent_time = current_time
+        if self.last_sent_signal == signal:
+            return  # Skip if the last signal is the same
+
+        command_queue.append(signal)
+        self.last_sent_signal = signal
 
     def run(self):
         while self.running:
             frame = self.process_frame()
-            if frame is not None:
-                cv2.imshow("Gaze Tracker", frame)
 
-            # Check for exit signal (Bound to `esc`)
-            if cv2.waitKey(1) == 27:
-                self.running = False
+            # Uncomment to view visualisation of iris identification
+            # if frame is not None:
+            #     cv2.imshow("Gaze Tracker", frame)
 
         self.cleanup()
 
