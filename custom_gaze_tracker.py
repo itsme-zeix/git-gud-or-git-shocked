@@ -57,11 +57,10 @@ class CustomGazeTracker:
     
     def send_signal(self, signal):
         current_time = time.time()
-        if current_time - self.last_sent_time >= self.cooldown:  # Check cooldown
+        if current_time - self.last_sent_time >= self.cooldown:  # Check against cooldown
             print(f"CustomGazeTracker added '{signal}' to the command queue.")
             command_queue.put(signal)
-            self.last_sent_time = current_time  # Update the last sent time
-        
+            self.last_sent_time = current_time
 
     def run(self):
         while self.running:

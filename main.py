@@ -8,7 +8,6 @@ from custom_gaze_tracker import CustomGazeTracker
 HOST_MIDDLEWARE = '127.0.0.1'
 PORT_MIDDLEWARE = 1337
 
-
 class ArduinoCommunication(threading.Thread):
     def __init__(self, host, port):
         super().__init__()
@@ -45,14 +44,14 @@ class ArduinoCommunication(threading.Thread):
 
                         client.sendall(manual_command.encode())
                         response = client.recv(1024).decode()
-                        print(f"Response from Arduino: {response}")
+                        if response is not None:
+                          print(f"Response from Arduino: {response}")
 
         except Exception as e:
             print(f"Error in ArduinoCommunication thread: {e}")
 
     def stop(self):
         self.running = False
-
 
 def main():
     try:
@@ -64,7 +63,7 @@ def main():
         gaze_tracker = CustomGazeTracker()
         gaze_tracker.run()
 
-        # Cleanup
+        # Cleanup Arduino thread
         arduino_thread.stop()
         arduino_thread.join()
 
@@ -74,5 +73,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
