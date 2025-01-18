@@ -29,10 +29,12 @@ function checkDomainAndCloseScript(tabId) {
 // Define your custom script here
 function runCustomScript(domain) {
   console.log(`Running script for: ${domain}`);
+  fetch("http://0.0.0.0:1338/start")
 }
 
 function stopCustomScript(domain) {
   console.log(`Stopping script for: ${domain}`);
+  fetch("http://0.0.0.0:1338/stop")
 }
 
 // Listen for tab updates (e.g., switching to a new tab or URL changes)
