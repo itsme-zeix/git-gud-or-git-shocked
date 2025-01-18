@@ -3,7 +3,7 @@ import time
 from threading import Thread
 from GazeTracking.gaze_tracking import GazeTracking
 from command_queue import command_queue
-from flask import Flask, request
+from flask import Flask, request, jsonify
 # from waitress import serve
 
 NOT_LOOKING_THRESHOLD = 1.0 # Time that user not looking at the screen to trigger shock
@@ -78,30 +78,45 @@ class CustomGazeTracker:
         self.last_sent_signal = signal
 
     def run(self):
-
-        # VideoCapture(0) for Windows
-        # VideoCapture(1) for MacOS
+        self.running = True
         self.webcam = cv2.VideoCapture(1)
         if not self.webcam.isOpened():
             print("Unable to access the webcam.")
-        else:
-            print("Webcam accessed successfully.")
+            return jsonify({"message": "Failed to access the webcam."}), 500
 
-        # Reduce resolution to optimize speed
         self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
-        while self.running:
-            frame = self.process_frame()
+        print("Gaze Tracker started.")
+        try:
+            while self.running:
+                frame = self.process_frame()
+                # Uncomment for visualization
+                # if frame is not None:
+                #     cv2.imshow("Gaze Tracker", frame)
 
-            # Uncomment to view visualisation of iris identification
-            # if frame is not None:
-            #     cv2.imshow("Gaze Tracker", frame)
+                # Add a small sleep to avoid high CPU usage
+                time.sleep(0.03)
 
-        self.cleanup()
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({"message": f"Error occurred: {e}"}), 500
+
+        finally:
+            self.cleanup()
+
+        return jsonify({"message": "Successfully terminated service."})
 
     def stop(self):
+        if not self.running:
+            return jsonify({"message": "Service is not running."}), 400
+        
+        # Force turn off LED so user isn't stuck getting shocked.
+        self.send_signal(False) 
+
         self.running = False
+        self.cleanup()
+        return jsonify({"message": "Stopped service."})
 
     def cleanup(self):
         self.webcam.release()
