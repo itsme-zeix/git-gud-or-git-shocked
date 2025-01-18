@@ -4,9 +4,12 @@ import sys
 import select
 from command_queue import command_queue
 from custom_gaze_tracker import CustomGazeTracker
+from flask import Flask, request
+# from waitress import serve
 
 HOST_MIDDLEWARE = '127.0.0.1'
 PORT_MIDDLEWARE = 1337
+API_PORT_NUMBER = 2300
 
 class ArduinoCommunication(threading.Thread):
     def __init__(self, host, port):
@@ -14,6 +17,7 @@ class ArduinoCommunication(threading.Thread):
         self.host = host
         self.port = port
         self.running = True
+
 
     def run(self):
         try:
@@ -61,7 +65,8 @@ def main():
 
         # Run GazeTracker in the main thread
         gaze_tracker = CustomGazeTracker()
-        gaze_tracker.run()
+        gaze_tracker.start_listening(HOST_MIDDLEWARE, API_PORT_NUMBER)
+        # gaze_tracker.run()
 
         # Cleanup Arduino thread
         arduino_thread.stop()

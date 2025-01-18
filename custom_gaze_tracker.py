@@ -1,14 +1,21 @@
 import cv2
 import time
+from threading import Thread
 from GazeTracking.gaze_tracking import GazeTracking
 from command_queue import command_queue
+from flask import Flask, request
+# from waitress import serve
 
 COOLDOWN = 0.5 # Cooldown for sending signals
 NOT_LOOKING_THRESHOLD = 3.0 # Time that user not looking at the screen to trigger shock
 
+
 class CustomGazeTracker:
     def __init__(self):
         self.gaze = GazeTracking()
+        self.app = Flask(__name__)
+        self.app.add_url_rule("/start", 'start', self.run, methods = ["GET"])
+        self.app.add_url_rule("/stop", 'stop', self.stop, methods = ["GET"])
 
         # VideoCapture(0) for Windows
         # VideoCapture(1) for MacOS
@@ -99,4 +106,10 @@ class CustomGazeTracker:
         self.webcam.release()
         cv2.destroyAllWindows()
         print("Gaze Tracker stopped")
+
+    def start_listening(self, host, port):
+        print(f"Starting API on {host}:{port}")
+        thread = Thread(target=self.app.run, kwargs={"host": host, "port": port, "use_reloader": False})
+        thread.daemon = True
+        thread.start()
 
