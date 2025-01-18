@@ -1,11 +1,24 @@
 import socket
 import serial
+import serial.tools.list_ports
 import threading
 import time
 
+def find_arduino_port():
+    """Find the Arduino device by scanning available serial ports."""
+    ports = list(serial.tools.list_ports.comports())
+    if not ports:
+        raise Exception("No serial ports found! Is the Arduino connected?")
+    for port in ports:
+        print(f"Device: {port.device}, Description: {port.description}, HWID: {port.hwid}")
+        if "usbmodem" in port.device:
+            return port.device
+    raise Exception("Arduino not found!")
+
 class ArduinoMiddleware:
-    def __init__(self, host='127.0.0.1', port=1337, arduino_port='/dev/cu.usbmodem1201', baudrate=9600):
-        self.arduino = serial.Serial(port=arduino_port, baudrate=baudrate, timeout=1)
+    def __init__(self, host='127.0.0.1', port=1337, baudrate=9600):
+        self.arduino_port = find_arduino_port()
+        self.arduino = serial.Serial(port=self.arduino_port, baudrate=baudrate, timeout=1)
         self.host = host
         self.port = port
         self.server = None
