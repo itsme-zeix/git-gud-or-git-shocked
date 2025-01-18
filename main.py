@@ -10,6 +10,7 @@ def main():
     try:
         # Start the GazeTracker in a separate thread
         gaze_tracker = CustomGazeTracker()
+        gaze_tracker.run()
 
         # Connect to ArduinoMiddleware
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:

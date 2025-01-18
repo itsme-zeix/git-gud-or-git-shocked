@@ -5,7 +5,7 @@ from command_queue import command_queue
 class CustomGazeTracker:
     def __init__(self):
         self.gaze = GazeTracking()
-        self.webcam = cv2.VideoCapture(1)
+        self.webcam = cv2.VideoCapture(0)
         if not self.webcam.isOpened():
             print("Unable to access the webcam.")
         else:
