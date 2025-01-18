@@ -2,20 +2,23 @@ import socket
 import threading
 import sys
 import select
+import os
 from command_queue import command_queue
 from custom_gaze_tracker import CustomGazeTracker
+from dotenv import load_dotenv
 from flask import Flask, request
-# from waitress import serve
 
 HOST_MIDDLEWARE = '127.0.0.1'
 PORT_MIDDLEWARE = 1337
 API_PORT_NUMBER = 2300
 
+load_dotenv()
+
 class ArduinoCommunication(threading.Thread):
-    def __init__(self, host, port):
+    def __init__(self):
         super().__init__()
-        self.host = host
-        self.port = port
+        self.host = os.getenv("MIDDLEWARE_HOST", "127.0.0.1")
+        self.port = int(os.getenv("MIDDLEWARE_PORT", 1337))
         self.running = True
 
 
@@ -49,7 +52,7 @@ class ArduinoCommunication(threading.Thread):
                         client.sendall(manual_command.encode())
                         response = client.recv(1024).decode()
                         if response is not None:
-                          print(f"Response from Arduino: {response}")
+                            print(f"Response from Arduino: {response}")
 
         except Exception as e:
             print(f"Error in ArduinoCommunication thread: {e}")
@@ -60,7 +63,7 @@ class ArduinoCommunication(threading.Thread):
 def main():
     try:
         # Start Arduino communication in a separate thread
-        arduino_thread = ArduinoCommunication(HOST_MIDDLEWARE, PORT_MIDDLEWARE)
+        arduino_thread = ArduinoCommunication()
         arduino_thread.start()
 
         # Run GazeTracker in the main thread

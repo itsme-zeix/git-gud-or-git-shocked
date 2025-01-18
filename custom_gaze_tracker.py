@@ -7,7 +7,7 @@ from flask import Flask, request
 # from waitress import serve
 
 COOLDOWN = 0.5 # Cooldown for sending signals
-NOT_LOOKING_THRESHOLD = 3.0 # Time that user not looking at the screen to trigger shock
+NOT_LOOKING_THRESHOLD = 2.0 # Time that user not looking at the screen to trigger shock
 
 
 class CustomGazeTracker:
