@@ -4,7 +4,7 @@ import threading
 import time
 
 class ArduinoMiddleware:
-    def __init__(self, host='127.0.0.1', port=1337, arduino_port='/dev/cu.usbmodem11101', baudrate=9600):
+    def __init__(self, host='127.0.0.1', port=1337, arduino_port='/dev/cu.usbmodem11201', baudrate=9600):
         self.arduino = serial.Serial(port=arduino_port, baudrate=baudrate, timeout=1)
         self.host = host
         self.port = port

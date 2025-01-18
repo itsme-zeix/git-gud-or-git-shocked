@@ -1,6 +1,9 @@
 import cv2
+import time
 from GazeTracking.gaze_tracking import GazeTracking
 from command_queue import command_queue
+
+COOLDOWN = 0.5
 
 class CustomGazeTracker:
     def __init__(self):
@@ -11,6 +14,9 @@ class CustomGazeTracker:
         else:
             print("Webcam accessed successfully.")
         self.running = True
+
+        self.last_sent_time = 0  # Track the last time a signal was sent
+        self.cooldown = COOLDOWN
 
     def process_frame(self):
         # Read a frame from the webcam
@@ -28,9 +34,10 @@ class CustomGazeTracker:
         # Determine gaze direction
         if self._check_if_looking():
             text = "Looking"
+            self.send_signal('0') # stop signal
         else:
             text = "Not Looking"
-            self.send_shock_signal()
+            self.send_signal('1') # shock signal
 
         # Add text annotation to the frame
         cv2.putText(
@@ -48,9 +55,12 @@ class CustomGazeTracker:
     def _check_if_looking(self):
         return self.gaze.is_right() or self.gaze.is_left() or self.gaze.is_center()
     
-    def send_shock_signal(self):
-        print("CustomGazeTracker added '1' to the command queue.")
-        command_queue.put('1')
+    def send_signal(self, signal):
+        current_time = time.time()
+        if current_time - self.last_sent_time >= self.cooldown:  # Check cooldown
+            print(f"CustomGazeTracker added '{signal}' to the command queue.")
+            command_queue.put(signal)
+            self.last_sent_time = current_time  # Update the last sent time
         
 
     def run(self):
