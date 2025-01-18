@@ -4,7 +4,7 @@ import time
 import os
 
 from command_queue import command_queue
-from custom_gaze_tracker import CustomGazeTracker
+from custom_gaze_api import CustomGazeTracker
 
 from dotenv import load_dotenv
 load_dotenv()
